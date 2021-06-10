@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Elevator extends Thread {
     private int currentCapacity;
     private final int maxCapacity;
@@ -11,7 +13,7 @@ public class Elevator extends Thread {
     public Elevator(Manager manager, int maxCapacity, int numberOfFloors) {
         this.manager = manager;
         this.maxCapacity = maxCapacity;
-        this.currentCapacity = this.maxCapacity;
+        this.currentCapacity = maxCapacity;
         this.numberOfFloors = numberOfFloors;
     }
 
@@ -26,10 +28,11 @@ public class Elevator extends Thread {
         while (manager.hasRequests()) {
             try {
                 int passengersLeft = manager.leavePassengers(getCurrentFloor());
-                setCurrentCapacity(getCurrentCapacity() + passengersLeft);
+                currentCapacity += passengersLeft;
                 System.out.println("Elevator left passengers " + "leftPassengers: " + passengersLeft);
+
                 int takenPassengers = manager.takePassengers(getCurrentFloor());
-                setCurrentCapacity(getCurrentCapacity() - takenPassengers);
+                currentCapacity -= takenPassengers;
                 System.out.println("Elevator took passengers " + "tookedPassengers: " + takenPassengers);
                 sleep(100);
                 changeFloor();
@@ -39,21 +42,13 @@ public class Elevator extends Thread {
         }
     }
 
-    public int getMaxCapacity() {
-        return maxCapacity;
-    }
-
-    public synchronized int getCurrentCapacity() {
-        System.out.println("Current capacity: " + currentCapacity);
-        return currentCapacity;
-    }
-
-    public synchronized void setCurrentCapacity(int capacity) {
-        this.currentCapacity = capacity;
-    }
-
     public int getCurrentFloor() {
         return currentFloor;
+    }
+
+    public int getCurrentCapacity() {
+        System.out.println("Current capacity is: " + currentCapacity);
+        return this.currentCapacity;
     }
 
     private void changeFloor() {

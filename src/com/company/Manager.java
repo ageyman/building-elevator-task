@@ -7,10 +7,10 @@ import java.util.stream.Collectors;
 public class Manager {
     private final ArrayBlockingQueue<Person> peopleToLift = new ArrayBlockingQueue<Person>(1000);
     private final Set<Person> peopleInLift = new HashSet<Person>();
-    private final Elevator elevator = new Elevator(this, 2, 5);
+    private final Elevator elevator = new Elevator(this, 20, 50);
 
     public Manager() {
-       elevator.start();
+        elevator.start();
     }
 
     public void addLiftRequest(Person person) {
@@ -30,7 +30,7 @@ public class Manager {
                 .collect(Collectors.toSet());
         peopleToLift.removeAll(peopleToTake);
         peopleInLift.addAll(peopleToTake);
-        return  peopleInLift.size();
+        return peopleToTake.size();
     }
 
     public int leavePassengers(int onFloor) {
@@ -43,7 +43,7 @@ public class Manager {
     }
 
     public boolean hasRequests() {
-        System.out.println("PeopleToLift: "+ peopleToLift.size());
+        System.out.println("PeopleToLift: " + peopleToLift.size());
         return !peopleToLift.isEmpty();
     }
 }
