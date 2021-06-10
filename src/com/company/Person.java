@@ -3,13 +3,20 @@ package com.company;
 public class Person extends Thread {
     private int startFloor;
     private int endFloor;
-    private boolean isLifted = false;
+    private final Manager manager;
     private final String personName;
 
-    public Person(int startFloor, int endFloor, String personName) {
+    public Person(Manager manager, int startFloor, int endFloor, String personName) {
+        this.manager = manager;
         this.startFloor = startFloor;
         this.endFloor = endFloor;
         this.personName = personName;
+    }
+
+    @Override
+    public void run() {
+        super.run();
+        manager.addLiftRequest(this);
     }
 
     public int getStartFloor() {
@@ -20,11 +27,7 @@ public class Person extends Thread {
         return endFloor;
     }
 
-    public boolean isLifted() {
-        return isLifted;
-    }
-
-    public void setLifted() {
-        isLifted = true;
+    public String getPersonName() {
+        return personName;
     }
 }

@@ -1,73 +1,48 @@
 package com.company;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
 
 public class Manager {
-    private final Person[] peopleToLift;
-    private final LinkedList<Person>[] peopleOnEachFloor;
-    private final ArrayList<Person> peopleCurrentlyInElevator = new ArrayList();
-    private final Elevator elevator;
-    private final int floorsToManage;
+    private final ArrayBlockingQueue<Person> peopleToLift = new ArrayBlockingQueue<Person>(1000);
+    private final Set<Person> peopleInLift = new HashSet<Person>();
+    private final Elevator elevator = new Elevator(this, 20, 5);
 
-    public Manager(Person[] peopleToLift, Elevator elevator, int floorsToManage) {
-        this.peopleToLift = peopleToLift;
-        this.floorsToManage = floorsToManage;
-        this.elevator = elevator;
-        this.peopleOnEachFloor = new LinkedList[floorsToManage];
+    public Manager() {
+       elevator.start();
     }
 
-    public void start() {
-        Arrays
-                .stream(peopleToLift)
-                .forEach(person -> peopleOnEachFloor[person.getStartFloor()].addFirst(person));
-
-        boolean isEveryoneLifted = Arrays.stream(peopleToLift).allMatch(person -> person.isLifted());
-
-        while (!isEveryoneLifted) {
-            movePeopleToElevator();
-            moveElevatorToNextFloor();
-            removePeopleFromElevator();
+    public void addLiftRequest(Person person) {
+        try {
+            peopleToLift.put(person);
+            System.out.println(person.getPersonName() + " is on: " + person.getStartFloor() + " and wants to go to: " + person.getEndFloor());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    private void moveElevatorToNextFloor() {
-        elevator.moveTo(findElevatorNextFloorToMove());
-    }
-
-    private int findElevatorNextFloorToMove() {
-        return peopleOnEachFloor[elevatorCurrentFloor()]
+    public int takePassengers(int onFloor) {
+        final Set<Person> peopleToTake = peopleToLift
                 .stream()
-                .mapToInt(p -> p.getEndFloor())
-                .boxed()
-                .collect(Collectors.toList())
+                .filter(person -> person.getStartFloor() == onFloor)
+                .limit(elevator.getCurrentCapacity())
+                .collect(Collectors.toSet());
+        peopleToLift.removeAll(peopleToTake);
+        peopleInLift.addAll(peopleToTake);
+        return  peopleInLift.size();
+    }
+
+    public int leavePassengers(int onFloor) {
+        final Set<Person> peopleToLeave = peopleInLift
                 .stream()
-                .min(Comparator.comparingInt(i -> Math.abs(i - elevatorCurrentFloor()))).get();
+                .filter(person -> person.getEndFloor() == onFloor)
+                .collect(Collectors.toSet());
+        peopleInLift.removeAll(peopleToLeave);
+        return peopleToLeave.size();
     }
 
-    private void movePeopleToElevator() {
-      final int peopleCurrentlyOnFloor = peopleOnEachFloor[elevatorCurrentFloor()].size();
-      if (peopleCurrentlyOnFloor == 0) {
-          return;
-      }
-      final int availablePlacesInElevator = elevator.getCurrentCapacity();
-      int peopleToGetInElevator = peopleCurrentlyOnFloor > availablePlacesInElevator ? availablePlacesInElevator : peopleCurrentlyOnFloor;
-      removePeopleFromFloorsList(peopleToGetInElevator);
-      elevator.setCurrentCapacity(elevator.getMaxCapacity() - peopleToGetInElevator);
-    }
-
-    private void removePeopleFromElevator() {
-
-    }
-
-    private int elevatorCurrentFloor() {
-        return elevator.getCurrentFloor();
-    }
-
-    private void removePeopleFromFloorsList(int peopleToRemove) {
-        for (int i = 0; i < peopleToRemove; i++) {
-           final Person person = peopleOnEachFloor[elevatorCurrentFloor()].removeLast();
-           peopleCurrentlyInElevator.add(person);
-        }
+    public boolean hasRequests() {
+        return !peopleToLift.isEmpty();
     }
 }
