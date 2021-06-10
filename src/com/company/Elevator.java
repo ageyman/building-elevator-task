@@ -25,13 +25,13 @@ public class Elevator extends Thread {
         }
         while (manager.hasRequests()) {
             try {
-                int takenPassengers = manager.takePassengers(getCurrentFloor());
-                setCurrentCapacity(getCurrentCapacity() - takenPassengers);
-                System.out.println("Elevator took passengers " + "tookedPassengers: " + takenPassengers);
-                sleep(3000);
                 int passengersLeft = manager.leavePassengers(getCurrentFloor());
                 setCurrentCapacity(getCurrentCapacity() + passengersLeft);
                 System.out.println("Elevator left passengers " + "leftPassengers: " + passengersLeft);
+                int takenPassengers = manager.takePassengers(getCurrentFloor());
+                setCurrentCapacity(getCurrentCapacity() - takenPassengers);
+                System.out.println("Elevator took passengers " + "tookedPassengers: " + takenPassengers);
+                sleep(100);
                 changeFloor();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -44,11 +44,12 @@ public class Elevator extends Thread {
     }
 
     public synchronized int getCurrentCapacity() {
+        System.out.println("Current capacity: " + currentCapacity);
         return currentCapacity;
     }
 
-    public synchronized void setCurrentCapacity(int currentCapacity) {
-        this.currentCapacity = currentCapacity;
+    public synchronized void setCurrentCapacity(int capacity) {
+        this.currentCapacity = capacity;
     }
 
     public int getCurrentFloor() {

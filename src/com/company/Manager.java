@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public class Manager {
     private final ArrayBlockingQueue<Person> peopleToLift = new ArrayBlockingQueue<Person>(1000);
     private final Set<Person> peopleInLift = new HashSet<Person>();
-    private final Elevator elevator = new Elevator(this, 20, 5);
+    private final Elevator elevator = new Elevator(this, 2, 5);
 
     public Manager() {
        elevator.start();
@@ -43,6 +43,7 @@ public class Manager {
     }
 
     public boolean hasRequests() {
+        System.out.println("PeopleToLift: "+ peopleToLift.size());
         return !peopleToLift.isEmpty();
     }
 }
