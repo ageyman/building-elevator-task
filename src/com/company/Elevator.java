@@ -40,6 +40,7 @@ public class Elevator extends Thread {
                 currentCapacity -= takenPassengers;
                 gui.updateDoorColor(false);
                 gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
+                gui.updatePeopleFlowNumbers(passengersLeft, takenPassengers);
                 System.out.println("Elevator took passengers " + "takenPassengers: " + takenPassengers);
                 changeFloor();
             } catch (InterruptedException e) {
