@@ -4,15 +4,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Elevator extends Thread {
     private int currentCapacity;
-    private final int maxCapacity;
     private int currentFloor = 0;
-    private int numberOfFloors;
+    private final int numberOfFloors;
     private boolean isUp = true;
     private final Manager manager;
 
     public Elevator(Manager manager, int maxCapacity, int numberOfFloors) {
         this.manager = manager;
-        this.maxCapacity = maxCapacity;
         this.currentCapacity = maxCapacity;
         this.numberOfFloors = numberOfFloors;
     }
@@ -25,6 +23,7 @@ public class Elevator extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         while (manager.hasRequests()) {
             try {
                 int passengersLeft = manager.leavePassengers(getCurrentFloor());
@@ -33,8 +32,7 @@ public class Elevator extends Thread {
 
                 int takenPassengers = manager.takePassengers(getCurrentFloor());
                 currentCapacity -= takenPassengers;
-                System.out.println("Elevator took passengers " + "tookedPassengers: " + takenPassengers);
-                sleep(100);
+                System.out.println("Elevator took passengers " + "takenPassengers: " + takenPassengers);
                 changeFloor();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -51,12 +49,13 @@ public class Elevator extends Thread {
         return this.currentCapacity;
     }
 
-    private void changeFloor() {
+    private void changeFloor() throws InterruptedException {
         System.out.println("Current floor is: " + currentFloor);
+        sleep(Constants.ELEVATOR_SlEEP_TIME);
         if (currentFloor == numberOfFloors && isUp) {
             currentFloor--;
             isUp = false;
-        } else if(currentFloor == 0 && !isUp) {
+        } else if (currentFloor == 0 && !isUp) {
             currentFloor++;
             isUp = true;
         } else if (isUp) {

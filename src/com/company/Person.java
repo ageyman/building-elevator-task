@@ -1,8 +1,8 @@
 package com.company;
 
 public class Person extends Thread {
-    private int startFloor;
-    private int endFloor;
+    private final int startFloor;
+    private final int endFloor;
     private final Manager manager;
     private final String personName;
 
