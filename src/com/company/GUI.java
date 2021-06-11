@@ -41,4 +41,12 @@ public class GUI {
     public void updateFloorNumber(int number) {
         floorTextField.setText("Floor: " + number);
     }
+
+    public void updatePeopleInElevatorCount(int number) {
+        peopleMovingTextField.setText("People in elevator: " + number);
+    }
+
+    public void updateDoorColor(boolean isOpen) {
+        peopleMovingTextField.setBackground(isOpen ? Color.green : Color.red);
+    }
 }

@@ -3,6 +3,7 @@ package com.company;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Elevator extends Thread {
+    private final int maxCapacity;
     private int currentCapacity;
     private int currentFloor = 0;
     private final int numberOfFloors;
@@ -12,6 +13,7 @@ public class Elevator extends Thread {
 
     public Elevator(Manager manager, int maxCapacity, int numberOfFloors) {
         this.manager = manager;
+        this.maxCapacity = maxCapacity;
         this.currentCapacity = maxCapacity;
         this.numberOfFloors = numberOfFloors;
     }
@@ -29,10 +31,15 @@ public class Elevator extends Thread {
             try {
                 int passengersLeft = manager.leavePassengers(getCurrentFloor());
                 currentCapacity += passengersLeft;
+                gui.updateDoorColor(true);
+                gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
                 System.out.println("Elevator left passengers " + "leftPassengers: " + passengersLeft);
+                sleep(300);
 
                 int takenPassengers = manager.takePassengers(getCurrentFloor());
                 currentCapacity -= takenPassengers;
+                gui.updateDoorColor(false);
+                gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
                 System.out.println("Elevator took passengers " + "takenPassengers: " + takenPassengers);
                 changeFloor();
             } catch (InterruptedException e) {
