@@ -8,6 +8,7 @@ public class Elevator extends Thread {
     private final int numberOfFloors;
     private boolean isUp = true;
     private final Manager manager;
+    private final GUI gui = new GUI();
 
     public Elevator(Manager manager, int maxCapacity, int numberOfFloors) {
         this.manager = manager;
@@ -63,6 +64,7 @@ public class Elevator extends Thread {
         } else {
             currentFloor--;
         }
+        gui.updateFloorNumber(currentFloor);
         System.out.println("Floor changed to: " + currentFloor);
     }
 }
