@@ -8,7 +8,7 @@ public class Main {
         Manager manager = new Manager();
         Random random = new Random();
         for (int i = 1; i <= 100; i++) {
-            Person person = new Person(manager, random.nextInt(6), random.nextInt(6), "Person " + i);
+            Person person = new Person(manager, random.nextInt(Constants.FLOORS_NUMBER + 1), random.nextInt(Constants.FLOORS_NUMBER + 1), "Person " + i);
             person.start();
         }
     }
