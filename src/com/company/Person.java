@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.Random;
+
 public class Person extends Thread {
     private final int startFloor;
     private final int endFloor;
@@ -15,7 +17,6 @@ public class Person extends Thread {
 
     @Override
     public void run() {
-        super.run();
         manager.addLiftRequest(this);
     }
 
@@ -29,5 +30,20 @@ public class Person extends Thread {
 
     public String getPersonName() {
         return personName;
+    }
+
+    static Person newPerson(Manager manager, String name) {
+        Random random = new Random();
+        final int startFloor = random.nextInt(Constants.FLOORS_NUMBER + 1);
+        int endFloor = random.nextInt(Constants.FLOORS_NUMBER + 1);
+        while (startFloor == endFloor) {
+            endFloor = random.nextInt(Constants.FLOORS_NUMBER + 1);
+        }
+
+        return new Person(manager,
+                startFloor,
+                endFloor,
+                name);
+
     }
 }
