@@ -9,13 +9,14 @@ public class Manager {
     private final Set<Person> peopleInLift = new HashSet<Person>();
     private final Elevator elevator = new Elevator(this, Constants.ELEVATOR_MAX_CAPACITY, Constants.FLOORS_NUMBER);
 
-    public Manager() {
+    public void start() {
         elevator.start();
     }
 
     public void addLiftRequest(Person person) {
         try {
             peopleToLift.put(person);
+            hasRequests();
             System.out.println(person.getPersonName() + " is on: " + person.getStartFloor() + " and wants to go to: " + person.getEndFloor());
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -42,8 +43,23 @@ public class Manager {
         return peopleToLeave.size();
     }
 
-    public boolean hasRequests() {
-        System.out.println("PeopleToLift: " + peopleToLift.size());
+    public int getNearFloorRequest() throws NoSuchElementException {
+        return peopleInLift
+                .stream()
+                .min(Comparator.comparingInt(i -> Math.abs(i.getEndFloor() - elevator.getCurrentFloor())))
+                .orElseThrow()
+                .getEndFloor();
+    }
+
+    public boolean hasRequests() throws InterruptedException {
+        synchronized (elevator) {
+            if (peopleToLift.isEmpty() && peopleInLift.isEmpty()) {
+                System.out.println("Elevator Waiting");
+                elevator.wait();
+            } else {
+                elevator.notifyAll();
+            }
+        }
         return !peopleToLift.isEmpty();
     }
 }

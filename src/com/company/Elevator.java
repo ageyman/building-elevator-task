@@ -1,6 +1,8 @@
 package com.company;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.NoSuchElementException;
 
 public class Elevator extends Thread {
     private final int maxCapacity;
@@ -10,38 +12,37 @@ public class Elevator extends Thread {
     private boolean isUp = true;
     private final Manager manager;
     private final GUI gui = new GUI();
+    private int requestsFromButton = 1;
 
     public Elevator(Manager manager, int maxCapacity, int numberOfFloors) {
         this.manager = manager;
         this.maxCapacity = maxCapacity;
         this.currentCapacity = maxCapacity;
         this.numberOfFloors = numberOfFloors;
+        setGUIButtonAction();
     }
 
     @Override
     public void run() {
-        super.run();
-        try {
-            sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        while (manager.hasRequests()) {
+        while (true) {
             try {
+                manager.hasRequests();
                 int passengersLeft = manager.leavePassengers(getCurrentFloor());
-                currentCapacity += passengersLeft;
-                gui.updateDoorColor(true);
-                gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
-                System.out.println("Elevator left passengers " + "leftPassengers: " + passengersLeft);
-                sleep(300);
-
                 int takenPassengers = manager.takePassengers(getCurrentFloor());
-                currentCapacity -= takenPassengers;
-                gui.updateDoorColor(false);
-                gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
-                gui.updatePeopleFlowNumbers(passengersLeft, takenPassengers);
-                System.out.println("Elevator took passengers " + "takenPassengers: " + takenPassengers);
+                if (passengersLeft > 0 || takenPassengers > 0) {
+                    currentCapacity += passengersLeft;
+                    gui.updateDoorColor(true);
+                    gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
+                    System.out.println("Elevator left passengers: " + passengersLeft);
+                    sleep(Constants.ELEVATOR_WAIT_TIME);
+
+                    currentCapacity -= takenPassengers;
+                    gui.updateDoorColor(false);
+                    gui.updatePeopleInElevatorCount(maxCapacity - currentCapacity);
+                    gui.updatePeopleFlowNumbers(passengersLeft, takenPassengers);
+                    System.out.println("Elevator took passengers: " + takenPassengers);
+                    System.out.println("People in elevator: " + (maxCapacity - currentCapacity));
+                }
                 changeFloor();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -54,13 +55,23 @@ public class Elevator extends Thread {
     }
 
     public int getCurrentCapacity() {
-        System.out.println("Current capacity is: " + currentCapacity);
         return this.currentCapacity;
     }
 
+    private void updateDirection() throws NoSuchElementException {
+        try {
+            System.out.println("Near Floor Request: " + manager.getNearFloorRequest());
+            isUp = manager.getNearFloorRequest() > currentFloor;
+        } catch (NoSuchElementException e) {
+           // e.printStackTrace();
+        }
+    }
+
     private void changeFloor() throws InterruptedException {
+        manager.hasRequests();
+        updateDirection();
         System.out.println("Current floor is: " + currentFloor);
-        sleep(Constants.ELEVATOR_SlEEP_TIME);
+        sleep(Constants.ELEVATOR_TRAVEL_TIME);
         if (currentFloor == numberOfFloors && isUp) {
             currentFloor--;
             isUp = false;
@@ -74,5 +85,15 @@ public class Elevator extends Thread {
         }
         gui.updateFloorNumber(currentFloor);
         System.out.println("Floor changed to: " + currentFloor);
+    }
+
+    private void setGUIButtonAction() {
+        gui.setAddRequestButtonAction(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Person.newPerson(manager, "Added from Button " + requestsFromButton).start();
+                requestsFromButton++;
+            }
+        });
     }
 }
