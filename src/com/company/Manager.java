@@ -7,7 +7,10 @@ import java.util.stream.Collectors;
 public class Manager {
     private final ArrayBlockingQueue<Person> peopleToLift = new ArrayBlockingQueue<Person>(1000);
     private final Set<Person> peopleInLift = new HashSet<Person>();
-    private final Elevator elevator = new Elevator(this, Constants.ELEVATOR_MAX_CAPACITY, Constants.FLOORS_NUMBER);
+    private final Elevator elevator = new Elevator(this,
+            Constants.ELEVATOR_MAX_CAPACITY,
+            Constants.FLOORS_NUMBER,
+            Constants.SHOULD_USE_OPTIMIZATION);
 
     public void start() {
         elevator.start();
@@ -43,12 +46,8 @@ public class Manager {
         return peopleToLeave.size();
     }
 
-    public int getNearFloorRequest() throws NoSuchElementException {
-        return peopleInLift
-                .stream()
-                .min(Comparator.comparingInt(i -> Math.abs(i.getEndFloor() - elevator.getCurrentFloor())))
-                .orElseThrow()
-                .getEndFloor();
+    public int getNearFloorRequest() {
+        return getNearFloorForPeopleInLift();
     }
 
     public boolean hasRequests() throws InterruptedException {
@@ -61,5 +60,31 @@ public class Manager {
             }
         }
         return !peopleToLift.isEmpty();
+    }
+
+    private int getNearFloorForPeopleInLift() {
+        try {
+            return peopleInLift
+                    .stream()
+                    .min(Comparator.comparingInt(i -> Math.abs(i.getEndFloor() - elevator.getCurrentFloor())))
+                    .orElseThrow()
+                    .getEndFloor();
+        } catch (NoSuchElementException e) {
+            // e.printStackTrace();
+            return getNearFloorForPeopleRequest();
+        }
+    }
+
+    private int getNearFloorForPeopleRequest() {
+        try {
+            return peopleToLift
+                    .stream()
+                    .min(Comparator.comparingInt(i -> Math.abs(i.getStartFloor() - elevator.getCurrentFloor())))
+                    .orElseThrow()
+                    .getStartFloor();
+        } catch (NoSuchElementException e) {
+            // e.printStackTrace();
+            return 0;
+        }
     }
 }

@@ -2,7 +2,6 @@ package com.company;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.NoSuchElementException;
 
 public class Elevator extends Thread {
     private final int maxCapacity;
@@ -12,13 +11,15 @@ public class Elevator extends Thread {
     private boolean isUp = true;
     private final Manager manager;
     private final GUI gui = new GUI();
-    private int requestsFromButton = 1;
+    private int requestsFromButton = 0;
+    private final boolean shouldUseOptimization;
 
-    public Elevator(Manager manager, int maxCapacity, int numberOfFloors) {
+    public Elevator(Manager manager, int maxCapacity, int numberOfFloors, boolean shouldUseOptimization) {
         this.manager = manager;
         this.maxCapacity = maxCapacity;
         this.currentCapacity = maxCapacity;
         this.numberOfFloors = numberOfFloors;
+        this.shouldUseOptimization = shouldUseOptimization;
         setGUIButtonAction();
     }
 
@@ -58,18 +59,18 @@ public class Elevator extends Thread {
         return this.currentCapacity;
     }
 
-    private void updateDirection() throws NoSuchElementException {
-        try {
-            System.out.println("Near Floor Request: " + manager.getNearFloorRequest());
-            isUp = manager.getNearFloorRequest() > currentFloor;
-        } catch (NoSuchElementException e) {
-           // e.printStackTrace();
-        }
+    private void updateDirection() {
+        final int floorToGo = manager.getNearFloorRequest();
+        System.out.println("Near Floor Request: " + floorToGo);
+        isUp = floorToGo > currentFloor;
     }
 
     private void changeFloor() throws InterruptedException {
         manager.hasRequests();
-        updateDirection();
+        if (shouldUseOptimization) {
+            updateDirection();
+        }
+
         System.out.println("Current floor is: " + currentFloor);
         sleep(Constants.ELEVATOR_TRAVEL_TIME);
         if (currentFloor == numberOfFloors && isUp) {
@@ -91,8 +92,8 @@ public class Elevator extends Thread {
         gui.setAddRequestButtonAction(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Person.newPerson(manager, "Added from Button " + requestsFromButton).start();
                 requestsFromButton++;
+                Person.newPerson(manager, "Added from Button " + requestsFromButton).start();
             }
         });
     }
